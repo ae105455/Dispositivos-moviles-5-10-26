@@ -13,12 +13,14 @@ erDiagram
     BAILARINES {
         int id PK
         string nombre
-        string categoria
+        string carrera
+        string turno
         datetime creado_en
     }
     EVALUADORES {
         int id PK
         string nombre UK
+        string cargo
     }
     ESTILOS_BAILE {
         int id PK
@@ -28,6 +30,7 @@ erDiagram
         int id PK
         string nombre UK
         decimal peso
+        boolean activo
     }
     EVALUACIONES {
         int id PK
@@ -36,6 +39,7 @@ erDiagram
         int estilo_id FK
         datetime fecha
         string observaciones
+        string firma
     }
     PUNTUACIONES {
         int evaluacion_id PK,FK
@@ -46,14 +50,14 @@ erDiagram
 
 ## Modelo relacional
 
-- `BAILARINES(id PK, nombre, categoria, creado_en, UNIQUE(nombre, categoria))`
-- `EVALUADORES(id PK, nombre UNIQUE)`
+- `BAILARINES(id PK, nombre, carrera, turno, creado_en)`
+- `EVALUADORES(id PK, nombre UNIQUE, cargo)`
 - `ESTILOS_BAILE(id PK, nombre UNIQUE)`
-- `CRITERIOS(id PK, nombre UNIQUE, peso)`
-- `EVALUACIONES(id PK, bailarín_id FK, evaluador_id FK, estilo_id FK, fecha, observaciones)`
+- `CRITERIOS(id PK, nombre UNIQUE, peso, activo)`
+- `EVALUACIONES(id PK, bailarín_id FK, evaluador_id FK, estilo_id FK, fecha, observaciones, firma)`
 - `PUNTUACIONES(evaluacion_id PK/FK, criterio_id PK/FK, nota)`
 
-Las relaciones de puntuación tienen clave primaria compuesta `(evaluacion_id, criterio_id)`, por lo que un criterio solo puede calificarse una vez por evaluación. Las claves foráneas se aplican en SQLite; las notas deben estar entre 0 y 10.
+Las relaciones de puntuación tienen clave primaria compuesta `(evaluacion_id, criterio_id)`, por lo que un criterio solo puede calificarse una vez por evaluación. Las claves foráneas se aplican en SQLite; las notas actuales deben estar entre 0 y 25. La planilla utiliza cuatro criterios: técnica, expresión y arte, coreografía, y vestuario y puesta en escena; juntos suman un máximo de 100 puntos. Los criterios anteriores se conservan inactivos para mantener el historial al actualizar una base de datos existente.
 
 ## Normalización
 
@@ -65,7 +69,7 @@ Las relaciones de puntuación tienen clave primaria compuesta `(evaluacion_id, c
 
 La aplicación crea y consulta principalmente estas vistas:
 
-- `v_evaluation_summary`: una fila por evaluación, con bailarín, categoría, estilo, jurado, fecha y promedio de notas.
+- `v_evaluation_summary`: una fila por evaluación, con participante, carrera, turno, título del baile, jurado, firma, fecha y promedio de notas sobre 25.
 - `v_criterion_performance`: una fila por criterio, con cantidad de notas y promedio histórico.
 
 Consultas usadas por el tablero y reportes:
@@ -78,7 +82,7 @@ SELECT COUNT(*) AS evaluaciones,
 FROM v_evaluation_summary;
 
 -- Resultados recientes para el listado y el PDF
-SELECT dancer_name, category, dance_style, evaluator_name,
+SELECT dancer_name, career, shift, dance_style, evaluator_name,
        evaluated_at, average_score
 FROM v_evaluation_summary
 ORDER BY evaluated_at DESC;

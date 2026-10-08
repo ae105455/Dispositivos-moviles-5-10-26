@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'database_factory_stub.dart'
   if (dart.library.io) 'database_factory_io.dart'
@@ -17,7 +18,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   database_setup.initializeDatabaseFactory();
   final database = DanceDatabase();
-  await database.database;
+  if (!kIsWeb) await database.database;
   runApp(DanceEvaluationApp(database: database));
 }
 

@@ -94,7 +94,7 @@ class DanceHomeScreen extends StatelessWidget {
                     _MetricTile(
                       icon: Icons.speed_rounded,
                       label: 'Promedio general',
-                      value: '${totals['overall_average'] ?? 0}/10',
+                      value: '${totals['overall_average'] ?? 0}/25',
                       tint: const Color(0xFFFFF0C6),
                     ),
                   ],

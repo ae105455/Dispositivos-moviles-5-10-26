@@ -40,14 +40,21 @@ class ReportsScreen extends StatelessWidget {
             pw.Text('Todavía no hay evaluaciones registradas.')
           else
             pw.TableHelper.fromTextArray(
-              headers: ['Bailarín', 'Baile', 'Categoría', 'Promedio'],
+              headers: [
+                'Participante/grupo',
+                'Carrera',
+                'Turno',
+                'Título del baile',
+                'Promedio',
+              ],
               data: evaluations
                   .map(
                     (row) => [
                       row['dancer_name'],
+                      row['career'],
+                      row['shift'],
                       row['dance_style'],
-                      row['category'],
-                      '${row['average_score']}/10',
+                      '${row['average_score']}/25',
                     ],
                   )
                   .toList(),
@@ -68,7 +75,7 @@ class ReportsScreen extends StatelessWidget {
             (row) => pw.Padding(
               padding: const pw.EdgeInsets.symmetric(vertical: 3),
               child: pw.Text(
-                '${row['criterion_name']}: ${row['average_score']}/10 '
+                '${row['criterion_name']}: ${row['average_score']}/25 '
                 '(${row['score_count']} notas)',
               ),
             ),
@@ -140,14 +147,14 @@ class ReportsScreen extends StatelessWidget {
                           children: [
                             Expanded(child: Text(row['criterion_name'] as String)),
                             Text(
-                              '${average.toStringAsFixed(1)} / 10',
+                              '${average.toStringAsFixed(1)} / 25',
                               style: const TextStyle(fontWeight: FontWeight.w800),
                             ),
                           ],
                         ),
                         const SizedBox(height: 8),
                         LinearProgressIndicator(
-                          value: average / 10,
+                          value: average / 25,
                           minHeight: 6,
                           borderRadius: BorderRadius.circular(5),
                           backgroundColor: const Color(0xFFE9ECE8),
@@ -188,10 +195,12 @@ class ReportsScreen extends StatelessWidget {
                     ),
                     title: Text(row['dancer_name'] as String),
                     subtitle: Text(
-                      '${row['dance_style']} · ${row['category']} · $dateLabel',
+                      '${row['career']} · ${row['shift']} · '
+                      '${row['dance_style']} · '
+                      '${row['evaluator_name']} · $dateLabel',
                     ),
                     trailing: Text(
-                      '${row['average_score']}/10',
+                      '${row['average_score']}/25',
                       style: const TextStyle(
                         color: Color(0xFF176B58),
                         fontWeight: FontWeight.w900,
