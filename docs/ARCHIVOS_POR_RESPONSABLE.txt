@@ -1,0 +1,56 @@
+ARCHIVOS DEL PROYECTO POR RESPONSABLE
+=====================================
+
+DIVISION RAPIDA PARA EXPONER
+----------------------------
+1. Abraham Espinoza Vargas - Aplicacion Flutter: parte grafica, logo y menu,
+   conexion a la base de datos y generacion del PDF.
+2. Josue Ramos - Base de datos: normalizacion, diagrama E-R, modelo relacional,
+   consultas y vistas.
+3. Camila - Documentacion y presentacion: informe escrito, capturas y armado
+   de la presentacion.
+
+ABRAHAM ESPINOZA VARGAS - APLICACION FLUTTER Y CONEXION
+--------------------------------------------------------
+- lib/main.dart: arranque de la app y menu principal.
+- lib/design/design_styles.dart: colores y estilos visuales compartidos.
+- lib/screens/: inicio, formulario de evaluacion y consultas/PDF.
+- lib/data/abraham_xampp_api_client.dart: solicitudes HTTP a la API XAMPP.
+- lib/data/dance_database.dart: interfaz de datos usada por las pantallas.
+
+JOSUE RAMOS - BASE DE DATOS Y API
+---------------------------------
+- docs/modelo_datos.md: diagrama E-R, modelo relacional y normalizacion.
+- docs/xampp_pulso_dance.sql: tablas, relaciones, vistas y consultas MySQL.
+- xampp/pulso_api/: PHP/PDO para conexion, validacion, guardado y consultas.
+- El primer comentario de los archivos principales indica que Josue expone esa
+  parte.
+
+CAMILA - DOCUMENTACION Y PRESENTACION
+-------------------------------------
+- camila/README.md: índice de sus materiales.
+- camila/informe_escrito.md: informe escrito del proyecto.
+- camila/guion_exposicion.txt: texto para explicar el trabajo en orden.
+- camila/presentacion.txt: orden y contenido sugerido para las diapositivas.
+- camila/capturas_pendientes.txt: lista de capturas para completar.
+- docs/nota_explicativa_base_datos.txt: instalacion y uso de XAMPP.
+- Este archivo: ubicacion de los archivos por responsable.
+
+PARA QUE LOS DATOS SE GUARDEN EN XAMPP
+--------------------------------------
+1. En XAMPP inicia Apache y MySQL.
+2. Si aun no existe pulso_dance, importa docs/xampp_pulso_dance.sql en
+   http://localhost/phpmyadmin.
+3. Abre http://localhost/pulso_api/catalogs.php y confirma que responde
+   success:true.
+4. Ejecuta flutter run -d chrome. En Chrome, la app usa esa API por defecto.
+5. Pulsa Guardar evaluacion. El formulario solo muestra exito cuando PHP
+   confirma que MySQL guardo la evaluacion.
+
+Para Android Emulator, la app elige automaticamente 10.0.2.2. En un telefono
+fisico hay que reemplazar localhost por la IP local de la PC:
+flutter run -d android --dart-define=PULSO_API_URL=http://192.168.1.20/pulso_api
+
+La carpeta xampp/htdocs/pulso_api de esta computadora esta enlazada al directorio
+xampp/pulso_api del proyecto. En otra computadora hay que copiar ese directorio
+a C:\xampp\htdocs\pulso_api.

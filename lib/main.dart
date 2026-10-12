@@ -1,24 +1,19 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'database_factory_stub.dart'
-  if (dart.library.io) 'database_factory_io.dart'
-  if (dart.library.js_interop) 'database_factory_web.dart' as database_setup;
 
 import 'data/dance_database.dart';
 import 'screens/dance_home_screen.dart';
 import 'screens/evaluation_screen.dart';
 import 'screens/reports_screen.dart';
 
+// Abraham Espinoza Vargas expone: inicio de la app, identidad visual y menu.
 const _ink = Color(0xFF202928);
 const _paper = Color(0xFFF5F3EC);
 const _green = Color(0xFF176B58);
 const _coral = Color(0xFFDF7359);
 
-Future<void> main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  database_setup.initializeDatabaseFactory();
   final database = DanceDatabase();
-  if (!kIsWeb) await database.database;
   runApp(DanceEvaluationApp(database: database));
 }
 

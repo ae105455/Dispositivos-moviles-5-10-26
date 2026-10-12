@@ -1,0 +1,118 @@
+NOTA PARA VINCULAR PULSO CON XAMPP (MYSQL)
+==========================================
+CAMILA EXPONE ESTA GUIA COMO PARTE DE LA DOCUMENTACION.
+
+ESTADO ACTUAL DEL PROYECTO
+--------------------------
+Flutter ya envia y lee datos por HTTP desde la API PHP; la API guarda en MySQL.
+La clase DanceDatabase es una fachada para el cliente HTTP, no crea tablas SQLite.
+El API fuente esta en xampp/pulso_api y en esta computadora se sirve desde
+C:\xampp\htdocs\pulso_api.
+
+Para conectar Flutter con XAMPP se necesita esta ruta:
+
+Flutter -> API REST en PHP (Apache/XAMPP) -> MySQL (MariaDB de XAMPP)
+
+No se debe conectar Flutter directamente al puerto de MySQL ni poner el usuario
+y la contraseña de MySQL dentro de la aplicación. La API PHP recibe y valida las
+peticiones y es la única que consulta la base de datos.
+
+1. PREPARAR XAMPP
+-----------------
+1. Abre XAMPP Control Panel e inicia Apache y MySQL.
+2. Abre http://localhost/phpmyadmin en el navegador.
+3. Selecciona la pestaña Importar y carga el archivo
+   docs/xampp_pulso_dance.sql. También puedes abrirlo en la pestaña SQL y
+   ejecutar su contenido completo. El script crea la base pulso_dance, las
+   tablas, los criterios iniciales y las vistas de reportes.
+4. Copia el contenido de xampp/pulso_api a C:\xampp\htdocs\pulso_api\ para que
+  Apache sirva http://localhost/pulso_api/. En el equipo de desarrollo esta
+  carpeta ya apunta a los archivos del proyecto.
+5. Abre http://localhost/pulso_api/catalogs.php. Debes ver JSON con
+  "success":true. Si aparece un error de conexion, comprueba MySQL y la
+  configuracion de josue_api_config.php.
+
+2. TABLAS QUE NECESITA MYSQL
+---------------------------
+La estructura lógica es la misma del archivo docs/modelo_datos.md. Para MySQL,
+se recomienda InnoDB para que funcionen las claves foráneas:
+
+- dancers: id, full_name, category, career, shift, created_at. Índice único en
+  (full_name, category).
+- evaluators: id, full_name único, position.
+- dance_styles: id, name único.
+- criteria: id, name único, weight, is_active.
+- evaluations: id, dancer_id, evaluator_id, dance_style_id, evaluated_at, notes,
+  signature. Las tres relaciones usan claves foráneas.
+- scores: evaluation_id, criterion_id y score. La clave primaria compuesta es
+  (evaluation_id, criterion_id); score debe estar entre 0 y 25.
+
+La estructura que se ejecuta en phpMyAdmin esta en
+docs/xampp_pulso_dance.sql. No hace falta ejecutar el SQL de SQLite desde Flutter.
+
+3. API PHP YA INCLUIDA
+----------------------
+La API incluida en xampp/pulso_api/ se conecta a MySQL con PDO. Sus operaciones:
+
+- GET /catalogs.php: devuelve evaluadores, estilos y criterios.
+- GET /dashboard.php: devuelve el resumen general.
+- GET /reports.php: devuelve evaluaciones y promedios por criterio.
+- POST /evaluations.php: valida y guarda la evaluación y sus puntuaciones en
+  una transacción SQL.
+
+Las rutas validan las notas entre 0 y 25 y usan consultas preparadas. CORS acepta
+origenes locales para desarrollo web. No publiques esta configuracion abierta
+en un servidor publico.
+
+4. DIRECCIÓN SEGÚN DÓNDE SE EJECUTA FLUTTER
+-------------------------------------------
+- Flutter Web en la misma computadora: http://localhost/pulso_api/.
+- Android Emulator: http://10.0.2.2/pulso_api/ (localhost del emulador no es
+  el localhost de Windows).
+- Teléfono físico: usa la IP local de la computadora, por ejemplo
+  http://192.168.1.20/pulso_api/, y conecta ambos dispositivos a la misma red.
+  Permite Apache en el Firewall de Windows si se bloquea el acceso.
+
+5. DIRECCION DE LA API EN FLUTTER
+---------------------------------
+En Chrome en esta computadora se usa por defecto http://localhost/pulso_api.
+Android Emulator selecciona http://10.0.2.2/pulso_api automaticamente. Para un
+telefono fisico usa la IP local de esta computadora con:
+
+  flutter run -d android --dart-define=PULSO_API_URL=http://192.168.1.20/pulso_api
+
+El telefono y la PC deben estar en la misma red. Android permite HTTP local para
+desarrollo en el manifiesto.
+
+6. RECORRIDO DE LOS DATOS
+-------------------------
+Formulario (EvaluationScreen)
+    -> DanceDatabase.saveEvaluation(...)
+  -> AbrahamXamppApiClient envia JSON por HTTP
+    -> PHP valida y guarda en MySQL, dentro de una transacción
+    -> ReportsScreen recibe el JSON de los endpoints de consulta
+
+Si falla la conexion, el formulario muestra el error y no presenta un falso
+mensaje de guardado correcto.
+
+7. ARCHIVOS DEL PROYECTO
+------------------------
+- lib/screens/evaluation_screen.dart: captura y valida la evaluación.
+- lib/data/abraham_xampp_api_client.dart: cliente HTTP Flutter (Abraham).
+- lib/data/dance_database.dart: fachada de lecturas y guardado remoto.
+- xampp/pulso_api/: endpoints PHP y conexion PDO (Josue).
+- lib/screens/reports_screen.dart: presenta los reportes.
+- docs/modelo_datos.md: modelo entidad-relación y estructura lógica.
+- docs/xampp_pulso_dance.sql: script importable en XAMPP/phpMyAdmin.
+
+8. DIVISION DEL TRABAJO PARA EXPONER
+------------------------------------
+1. Abraham Espinoza Vargas - Aplicacion Flutter: parte grafica, logo y menu,
+   conexion a la base de datos y generacion del PDF.
+2. Josue Ramos - Base de datos: normalizacion, diagrama E-R, modelo relacional,
+   consultas y vistas.
+3. Camila - Documentacion y presentacion: informe escrito, capturas y armado
+   de la presentacion.
+
+La explicacion oral esta en camila/guion_exposicion.txt. La base SQL y los
+endpoints ya estan preparados; inicia Apache y MySQL antes de usar la app.

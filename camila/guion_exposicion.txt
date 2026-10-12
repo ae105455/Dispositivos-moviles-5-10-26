@@ -1,0 +1,55 @@
+GUIÓN DE EXPOSICIÓN - PULSO
+===========================
+Responsable de documentación y presentación: Camila
+
+REPARTO RAPIDO
+--------------
+1. Abraham Espinoza Vargas: Aplicación Flutter, parte gráfica, logo y menú,
+   conexión a la base de datos y generación del PDF.
+2. Josue Ramos: Base de datos, normalización, diagrama E-R, modelo relacional,
+   consultas y vistas.
+3. Camila: Documentación y presentación, informe escrito, capturas y armado
+   de la presentación.
+
+INTRODUCCION
+------------
+Buenos días. Nuestro proyecto es Pulso, una aplicación para registrar y
+consultar evaluaciones de baile. La ficha permite guardar el participante o
+grupo, carrera, turno, título del baile y las notas del jurado. Se califican
+cuatro aspectos: técnica, expresión y arte, coreografía, y vestuario y puesta
+en escena. Cada aspecto vale hasta 25 puntos, para un máximo de 100. También
+se registran los datos del jurado, su firma y observaciones.
+
+1. ABRAHAM ESPINOZA VARGAS - APLICACION FLUTTER
+-----------------------------------------------
+Me corresponde explicar la aplicación. Está desarrollada en Flutter y tiene
+un menú para entrar al inicio, al formulario de evaluación y a las consultas.
+El formulario valida que cada calificación esté entre 0 y 25 y calcula el
+total. Al guardar, Flutter envía los datos a la API PHP de XAMPP, que los
+registra en MySQL. La aplicación también genera PDF de la ficha y de los
+resultados.
+
+2. JOSUE RAMOS - BASE DE DATOS
+------------------------------
+La base tiene las entidades bailarines, evaluadores, estilos de baile,
+criterios, evaluaciones y puntuaciones. Las evaluaciones se relacionan con un
+bailarín, un evaluador y un estilo. Cada puntuación vincula una evaluación con
+un criterio mediante una clave primaria compuesta.
+
+El diseño aplica normalización: cada campo guarda un dato simple; cada nota
+depende de la evaluación y del criterio; y los datos de bailarines, jurados y
+criterios se guardan en sus propias tablas para no repetirlos. Las vistas
+resumen las evaluaciones y calculan los promedios de cada criterio.
+
+3. CAMILA - DOCUMENTACION Y PRESENTACION
+----------------------------------------
+Me corresponde explicar el informe escrito y organizar las capturas y la
+presentación. El informe contiene la descripción del proyecto, el modelo de
+datos, la normalización y las consultas. En las capturas mostraré el menú, el
+formulario, el total, el resultado guardado y los PDF generados.
+
+CIERRE
+------
+Pulso organiza la evaluación de baile en un formulario digital, guarda los
+resultados en MySQL mediante la API PHP y permite consultarlos y generar PDF.
+Para trabajar con XAMPP, Apache y MySQL deben estar iniciados.

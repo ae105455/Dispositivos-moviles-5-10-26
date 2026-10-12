@@ -4,6 +4,9 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
 import '../data/dance_database.dart';
+import '../design/design_styles.dart';
+
+// Abraham Espinoza Vargas expone: consultas visuales y reporte PDF.
 
 class ReportsScreen extends StatelessWidget {
   const ReportsScreen({
@@ -21,9 +24,12 @@ class ReportsScreen extends StatelessWidget {
     List<Map<String, Object?>> criteria,
   ) async {
     final document = pw.Document();
+    String formatScore(Object? value) =>
+        (num.tryParse('$value') ?? 0).toStringAsFixed(1);
+
     document.addPage(
       pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
+        pageFormat: PdfPageFormat.a4.landscape,
         build: (context) => [
           pw.Text(
             'PULSO | Resultados de evaluación',
@@ -46,6 +52,7 @@ class ReportsScreen extends StatelessWidget {
                 'Turno',
                 'Título del baile',
                 'Promedio',
+                'Puntaje total',
               ],
               data: evaluations
                   .map(
@@ -54,7 +61,8 @@ class ReportsScreen extends StatelessWidget {
                       row['career'],
                       row['shift'],
                       row['dance_style'],
-                      '${row['average_score']}/25',
+                      '${formatScore(row['average_score'])}/25',
+                      '${formatScore(row['total_score'])}/100',
                     ],
                   )
                   .toList(),
@@ -75,11 +83,44 @@ class ReportsScreen extends StatelessWidget {
             (row) => pw.Padding(
               padding: const pw.EdgeInsets.symmetric(vertical: 3),
               child: pw.Text(
-                '${row['criterion_name']}: ${row['average_score']}/25 '
+                '${row['criterion_name']}: '
+                '${formatScore(row['average_score'])}/25 '
                 '(${row['score_count']} notas)',
               ),
             ),
           ),
+          if (evaluations.isNotEmpty) ...[
+            pw.SizedBox(height: 24),
+            pw.Text(
+              'Firma del docente',
+              style: pw.TextStyle(fontSize: 15, fontWeight: pw.FontWeight.bold),
+            ),
+            pw.SizedBox(height: 8),
+            ...evaluations.map(
+              (row) => pw.Container(
+                width: 260,
+                margin: const pw.EdgeInsets.only(bottom: 18),
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.center,
+                  children: [
+                    pw.SizedBox(height: 22),
+                    pw.Text('${row['signature'] ?? ''}'),
+                    pw.Container(
+                      width: 240,
+                      height: 1,
+                      color: PdfColors.black,
+                    ),
+                    pw.SizedBox(height: 5),
+                    pw.Text(
+                      '${row['evaluator_name'] ?? ''}',
+                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                    ),
+                    pw.Text('${row['evaluator_position'] ?? ''}'),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -99,10 +140,19 @@ class ReportsScreen extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasError) {
-          return const Center(child: Text('No se pudieron cargar los datos.'));
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Text(
+                'No se pudieron cargar datos desde XAMPP. ${snapshot.error}',
+                textAlign: TextAlign.center,
+              ),
+            ),
+          );
         }
         final evaluations = snapshot.data![0];
         final criteria = snapshot.data![1];
+        /* ESTRUCTURA DE CONSULTAS: primero promedios por criterio y luego evaluaciones. */
         return ListView(
           padding: const EdgeInsets.fromLTRB(22, 18, 22, 30),
           children: [
@@ -111,7 +161,7 @@ class ReportsScreen extends StatelessWidget {
                 const Expanded(
                   child: Text(
                     'Consultas',
-                    style: TextStyle(fontSize: 25, fontWeight: FontWeight.w900),
+                    style: ScreenDesign.pageTitle,
                   ),
                 ),
                 IconButton.filledTonal(
@@ -123,19 +173,20 @@ class ReportsScreen extends StatelessWidget {
             ),
             const Text(
               'Resultados consolidados de las evaluaciones.',
-              style: TextStyle(color: Color(0xFF6F7772)),
+              style: ScreenDesign.supportingText,
             ),
             const SizedBox(height: 22),
             const Text(
               'PROMEDIO POR CRITERIO',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900),
+              style: ScreenDesign.sectionTitle,
             ),
             const SizedBox(height: 9),
             if (criteria.isEmpty)
               const _EmptyState(message: 'Aún no hay criterios disponibles.')
             else
               ...criteria.map((row) {
-                final average = (row['average_score'] as num).toDouble();
+                final average =
+                    num.tryParse('${row['average_score']}')?.toDouble() ?? 0;
                 return Card(
                   margin: const EdgeInsets.only(bottom: 8),
                   child: Padding(
@@ -145,10 +196,12 @@ class ReportsScreen extends StatelessWidget {
                       children: [
                         Row(
                           children: [
-                            Expanded(child: Text(row['criterion_name'] as String)),
+                            Expanded(
+                                child: Text(row['criterion_name'] as String)),
                             Text(
                               '${average.toStringAsFixed(1)} / 25',
-                              style: const TextStyle(fontWeight: FontWeight.w800),
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.w800),
                             ),
                           ],
                         ),
@@ -157,7 +210,7 @@ class ReportsScreen extends StatelessWidget {
                           value: average / 25,
                           minHeight: 6,
                           borderRadius: BorderRadius.circular(5),
-                          backgroundColor: const Color(0xFFE9ECE8),
+                          backgroundColor: ScreenDesign.progressBackground,
                         ),
                       ],
                     ),
@@ -178,7 +231,8 @@ class ReportsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 9),
             if (evaluations.isEmpty)
-              const _EmptyState(message: 'Guarda una evaluación para ver resultados.')
+              const _EmptyState(
+                  message: 'Guarda una evaluación para ver resultados.')
             else
               ...evaluations.map((row) {
                 final date = DateTime.tryParse(row['evaluated_at'] as String);
@@ -227,7 +281,7 @@ class _EmptyState extends StatelessWidget {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(18),
-        child: Text(message, style: const TextStyle(color: Color(0xFF6F7772))),
+        child: Text(message, style: ScreenDesign.supportingText),
       ),
     );
   }

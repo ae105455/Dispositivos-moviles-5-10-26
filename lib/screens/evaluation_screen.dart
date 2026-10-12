@@ -5,6 +5,9 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
 import '../data/dance_database.dart';
+import '../design/design_styles.dart';
+
+// Abraham Espinoza Vargas expone: formulario, validacion, guardado y PDF.
 
 class EvaluationScreen extends StatefulWidget {
   const EvaluationScreen({
@@ -41,14 +44,15 @@ class _EvaluationScreenState extends State<EvaluationScreen> {
   final Map<int, TextEditingController> _scoreControllers = {};
   String? _career;
   String? _shift;
+  String? _loadError;
   List<Map<String, Object?>> _criteria = [];
   bool _loading = true;
   bool _saving = false;
 
   int get _totalScore => _scoreControllers.values.fold<int>(
-    0,
-    (total, controller) => total + (int.tryParse(controller.text) ?? 0),
-  );
+        0,
+        (total, controller) => total + (int.tryParse(controller.text) ?? 0),
+      );
 
   @override
   void initState() {
@@ -57,15 +61,24 @@ class _EvaluationScreenState extends State<EvaluationScreen> {
   }
 
   Future<void> _loadCriteria() async {
-    final criteria = await widget.database.getCriteria();
-    if (!mounted) return;
-    setState(() {
-      _criteria = criteria;
-      for (final criterion in criteria) {
-        _scoreControllers[criterion['id'] as int] = TextEditingController();
-      }
-      _loading = false;
-    });
+    try {
+      final criteria = await widget.database.getCriteria();
+      if (!mounted) return;
+      setState(() {
+        _criteria = criteria;
+        for (final criterion in criteria) {
+          _scoreControllers[criterion['id'] as int] = TextEditingController();
+        }
+        _loadError = null;
+        _loading = false;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _loadError = error.toString();
+        _loading = false;
+      });
+    }
   }
 
   Future<void> _submit() async {
@@ -76,23 +89,31 @@ class _EvaluationScreenState extends State<EvaluationScreen> {
             double.parse(_scoreControllers[criterion['id'] as int]!.text),
     };
     setState(() => _saving = true);
-    await widget.database.saveEvaluation(
-      dancerName: _nameController.text,
-      career: _career!,
-      shift: _shift!,
-      evaluatorName: _evaluatorController.text,
-      evaluatorPosition: _positionController.text,
-      danceTitle: _titleController.text,
-      signature: _signatureController.text,
-      scores: scores,
-      notes: _notesController.text,
-    );
-    if (!mounted) return;
-    setState(() => _saving = false);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Evaluación guardada correctamente.')),
-    );
-    widget.onSaved();
+    try {
+      await widget.database.saveEvaluation(
+        dancerName: _nameController.text,
+        career: _career!,
+        shift: _shift!,
+        evaluatorName: _evaluatorController.text,
+        evaluatorPosition: _positionController.text,
+        danceTitle: _titleController.text,
+        signature: _signatureController.text,
+        scores: scores,
+        notes: _notesController.text,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Evaluación guardada en XAMPP.')),
+      );
+      widget.onSaved();
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('No se pudo guardar: $error')),
+      );
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
   }
 
   Future<void> _exportEvaluationSheetPdf() async {
@@ -101,8 +122,8 @@ class _EvaluationScreenState extends State<EvaluationScreen> {
 
     document.addPage(
       pw.Page(
-        pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(18),
+        pageFormat: PdfPageFormat.a4.landscape,
+        margin: const pw.EdgeInsets.all(20),
         build: (pw.Context context) {
           final titleCells = [
             'Nro.',
@@ -114,18 +135,36 @@ class _EvaluationScreenState extends State<EvaluationScreen> {
             'TOTAL',
           ];
 
-          final bodyRows = List.generate(7, (rowIndex) {
-            final cells = <dynamic>[];
-            cells.add('${rowIndex + 1}');
-            cells.add(_nameController.text);
-            cells.add(_career ?? '');
-            cells.add(_shift ?? '');
-            cells.add(_titleController.text);
-            for (final _ in criteria) {
-              cells.add('');
-            }
-            cells.add('');
-            return cells;
+          const columnFlexes = [
+            0.7,
+            2.3,
+            2.1,
+            1.0,
+            1.5,
+            1.1,
+            1.4,
+            1.3,
+            2.0,
+            0.8
+          ];
+          final filledRow = <String>[
+            '1',
+            _nameController.text,
+            _career ?? '',
+            _shift ?? '',
+            _titleController.text,
+            ..._criteria.map((criterion) {
+              final controller = _scoreControllers[criterion['id'] as int];
+              return controller?.text ?? '';
+            }),
+            '$_totalScore',
+          ];
+          final bodyRows = List.generate(10, (rowIndex) {
+            if (rowIndex == 0) return filledRow;
+            return [
+              '${rowIndex + 1}',
+              ...List.filled(titleCells.length - 1, '')
+            ];
           });
 
           return pw.Column(
@@ -135,38 +174,53 @@ class _EvaluationScreenState extends State<EvaluationScreen> {
                 child: pw.Text(
                   'FORMULARIO DE EVALUACION BAILE',
                   style: pw.TextStyle(
-                    fontSize: 16,
+                    fontSize: 14,
                     fontWeight: pw.FontWeight.bold,
-                    letterSpacing: 0.5,
                   ),
                 ),
               ),
-              pw.SizedBox(height: 10),
+              pw.SizedBox(height: 8),
+              pw.Row(
+                children: [
+                  pw.Expanded(
+                    flex: 3,
+                    child: _pdfGroupHeading('IDENTIFICACION'),
+                  ),
+                  pw.Expanded(
+                    flex: 2,
+                    child: _pdfGroupHeading('CARRERA'),
+                  ),
+                  pw.Expanded(
+                    flex: 1,
+                    child: _pdfGroupHeading('TURNO'),
+                  ),
+                  pw.Expanded(
+                    flex: 8,
+                    child: _pdfGroupHeading('ASPECTOS DE EVALUACION'),
+                  ),
+                ],
+              ),
               pw.Table(
                 border: pw.TableBorder.all(color: PdfColors.black, width: 0.7),
                 columnWidths: {
-                  0: const pw.FlexColumnWidth(0.9),
-                  1: const pw.FlexColumnWidth(2.0),
-                  2: const pw.FlexColumnWidth(1.7),
-                  3: const pw.FlexColumnWidth(1.1),
-                  4: const pw.FlexColumnWidth(1.6),
-                  5: const pw.FlexColumnWidth(1.1),
-                  6: const pw.FlexColumnWidth(1.3),
-                  7: const pw.FlexColumnWidth(1.2),
-                  8: const pw.FlexColumnWidth(1.7),
-                  9: const pw.FlexColumnWidth(0.9),
+                  for (var index = 0; index < columnFlexes.length; index++)
+                    index: pw.FlexColumnWidth(columnFlexes[index]),
                 },
                 children: [
                   pw.TableRow(
                     children: titleCells
                         .map(
                           (label) => pw.Container(
+                            height: 48,
                             alignment: pw.Alignment.center,
-                            padding: const pw.EdgeInsets.all(4),
+                            padding: const pw.EdgeInsets.all(3),
                             child: pw.Text(
                               label,
                               textAlign: pw.TextAlign.center,
-                              style: const pw.TextStyle(fontSize: 8),
+                              style: pw.TextStyle(
+                                fontSize: 7,
+                                fontWeight: pw.FontWeight.bold,
+                              ),
                             ),
                           ),
                         )
@@ -177,12 +231,9 @@ class _EvaluationScreenState extends State<EvaluationScreen> {
                       children: row
                           .map(
                             (cell) => pw.Container(
-                              height: 20,
-                              alignment: pw.Alignment.centerLeft,
-                              padding: const pw.EdgeInsets.symmetric(
-                                horizontal: 4,
-                                vertical: 3,
-                              ),
+                              height: 28,
+                              alignment: pw.Alignment.center,
+                              padding: const pw.EdgeInsets.all(3),
                               child: pw.Text(
                                 cell.toString(),
                                 maxLines: 1,
@@ -238,6 +289,19 @@ class _EvaluationScreenState extends State<EvaluationScreen> {
     await Printing.layoutPdf(onLayout: (_) async => document.save());
   }
 
+  pw.Widget _pdfGroupHeading(String label) => pw.Container(
+        height: 20,
+        alignment: pw.Alignment.center,
+        decoration: pw.BoxDecoration(
+          border: pw.Border.all(color: PdfColors.black, width: 0.7),
+        ),
+        child: pw.Text(
+          label,
+          textAlign: pw.TextAlign.center,
+          style: pw.TextStyle(fontSize: 7, fontWeight: pw.FontWeight.bold),
+        ),
+      );
+
   @override
   void dispose() {
     _nameController.dispose();
@@ -255,6 +319,36 @@ class _EvaluationScreenState extends State<EvaluationScreen> {
   @override
   Widget build(BuildContext context) {
     if (_loading) return const Center(child: CircularProgressIndicator());
+    if (_loadError != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.cloud_off_outlined, size: 42),
+              const SizedBox(height: 12),
+              const Text('No se pudo conectar con la base de datos.'),
+              const SizedBox(height: 8),
+              Text(_loadError!, textAlign: TextAlign.center),
+              const SizedBox(height: 16),
+              FilledButton.icon(
+                onPressed: () {
+                  setState(() {
+                    _loading = true;
+                    _loadError = null;
+                  });
+                  _loadCriteria();
+                },
+                icon: const Icon(Icons.refresh),
+                label: const Text('Reintentar'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    /* ESTRUCTURA DEL FORMULARIO: secciones apiladas dentro de una lista desplazable. */
     return Form(
       key: _formKey,
       child: ListView(
@@ -275,15 +369,12 @@ class _EvaluationScreenState extends State<EvaluationScreen> {
                           children: [
                             Text(
                               'Formulario de evaluación de baile',
-                              style: TextStyle(
-                                fontSize: 25,
-                                fontWeight: FontWeight.w900,
-                              ),
+                              style: ScreenDesign.pageTitle,
                             ),
                             SizedBox(height: 5),
                             Text(
                               'Completa una ficha por participante o grupo.',
-                              style: TextStyle(color: Color(0xFF6F7772)),
+                              style: ScreenDesign.supportingText,
                             ),
                           ],
                         ),
@@ -308,6 +399,7 @@ class _EvaluationScreenState extends State<EvaluationScreen> {
                     validator: _required,
                   ),
                   const SizedBox(height: 12),
+                  /* DISTRIBUCIÓN RESPONSIVA: carrera y turno pasan de una a dos columnas. */
                   LayoutBuilder(
                     builder: (context, constraints) {
                       final wide = constraints.maxWidth > 540;
@@ -380,7 +472,7 @@ class _EvaluationScreenState extends State<EvaluationScreen> {
                       const Text(
                         '25 pts. cada uno',
                         style: TextStyle(
-                          color: Color(0xFF6F7772),
+                          color: ScreenDesign.muted,
                           fontSize: 12,
                         ),
                       ),
@@ -399,7 +491,7 @@ class _EvaluationScreenState extends State<EvaluationScreen> {
                     );
                   }),
                   Card(
-                    color: const Color(0xFFE5F0EB),
+                    color: ScreenDesign.greenTint,
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
@@ -417,7 +509,7 @@ class _EvaluationScreenState extends State<EvaluationScreen> {
                             '$_totalScore / 100 pts.',
                             style: const TextStyle(
                               fontSize: 20,
-                              color: Color(0xFF176B58),
+                              color: ScreenDesign.green,
                               fontWeight: FontWeight.w900,
                             ),
                           ),
@@ -491,13 +583,14 @@ class _EvaluationScreenState extends State<EvaluationScreen> {
     );
   }
 
-  String? _required(String? value) =>
-      value == null || value.trim().isEmpty ? 'Este campo es obligatorio.' : null;
+  String? _required(String? value) => value == null || value.trim().isEmpty
+      ? 'Este campo es obligatorio.'
+      : null;
 
   Widget _sectionTitle(String title) => Text(
-    title,
-    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900),
-  );
+        title,
+        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900),
+      );
 }
 
 class _ScoreField extends StatelessWidget {

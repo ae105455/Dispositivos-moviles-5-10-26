@@ -1,5 +1,7 @@
 # Formulario de evaluación de baile
 
+<!-- Josue Ramos expone este documento: normalizacion, modelo E-R, consultas y vistas. -->
+
 ## Diagrama entidad-relación
 
 ```mermaid

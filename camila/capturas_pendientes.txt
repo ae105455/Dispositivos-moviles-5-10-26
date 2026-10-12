@@ -1,0 +1,16 @@
+LISTA DE CAPTURAS PARA EL INFORME - CAMILA
+==========================================
+
+Guardar las imágenes finales en esta carpeta con estos nombres:
+
+1. 01_menu_inicio.png - pantalla de inicio y navegación.
+2. 02_formulario.png - datos del participante y del jurado.
+3. 03_puntajes_total.png - los cuatro criterios y el total sobre 100.
+4. 04_guardado_mysql.png - confirmación del guardado y, si se puede, registro
+   visible en phpMyAdmin.
+5. 05_consultas.png - evaluaciones y promedio por criterio.
+6. 06_pdf_ficha.png - ficha PDF de evaluación.
+7. 07_pdf_reporte.png - reporte PDF de resultados.
+
+Antes de tomar las capturas, iniciar Apache y MySQL en XAMPP y usar datos de
+demostración, no datos personales reales.

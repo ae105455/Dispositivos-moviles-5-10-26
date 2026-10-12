@@ -1,0 +1,25 @@
+ORDEN SUGERIDO DE LA PRESENTACION - CAMILA
+=========================================
+
+DIAPOSITIVA 1 - PORTADA
+Pulso: aplicación de evaluación de baile.
+Integrantes: Abraham Espinoza Vargas, Josue Ramos y Camila.
+
+DIAPOSITIVA 2 - PROBLEMA Y OBJETIVO
+Registrar en formato digital los datos de participantes y las calificaciones
+de los jurados, y facilitar la consulta de resultados.
+
+DIAPOSITIVA 3 - APLICACION FLUTTER (ABRAHAM)
+Mostrar menú, formulario, validación de los cuatro criterios, total sobre 100,
+conexión HTTP a la API y generación del PDF.
+
+DIAPOSITIVA 4 - BASE DE DATOS (JOSUE)
+Mostrar el diagrama E-R, las tablas, las claves y explicar brevemente la
+normalización.
+
+DIAPOSITIVA 5 - CONSULTAS Y VISTAS (JOSUE)
+Mostrar las vistas de resumen de evaluaciones y promedio por criterio.
+
+DIAPOSITIVA 6 - RESULTADOS Y DOCUMENTACION (CAMILA)
+Mostrar capturas del flujo, informe escrito y PDF. Cerrar con la conclusión:
+Flutter captura, PHP conecta y MySQL almacena los resultados.
