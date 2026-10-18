@@ -16,13 +16,17 @@ class AbrahamXamppApiClient {
   final http.Client _client;
 
   static String get baseUrl {
-    if (WifiApiConfig.adminBaseUrl case final String adminBaseUrl) {
-      return adminBaseUrl;
-    }
     if (_configuredBaseUrl.isNotEmpty) return _configuredBaseUrl;
     if (kIsWeb) {
-      return Uri.base.replace(path: '/pulso_api', query: null, fragment: null)
-          .toString();
+      final sameOriginBaseUrl = WifiApiConfig.webApiBaseUrl(Uri.base);
+      if (sameOriginBaseUrl != null) return sameOriginBaseUrl;
+      if (WifiApiConfig.adminBaseUrl case final String adminBaseUrl) {
+        return adminBaseUrl;
+      }
+      return 'http://localhost/pulso_api';
+    }
+    if (WifiApiConfig.adminBaseUrl case final String adminBaseUrl) {
+      return adminBaseUrl;
     }
     if (defaultTargetPlatform == TargetPlatform.android) {
       if (WifiApiConfig.useWifiApi) return WifiApiConfig.baseUrl;
@@ -61,9 +65,22 @@ class AbrahamXamppApiClient {
               )
               .timeout(const Duration(seconds: 12))
           : await _client.get(uri).timeout(const Duration(seconds: 12));
-      final decoded = jsonDecode(response.body);
+      Object? decoded;
+      try {
+        decoded = jsonDecode(response.body);
+      } on FormatException {
+        final contentType =
+            response.headers['content-type'] ?? 'no informado';
+        throw Exception(
+          'La dirección $uri respondió HTTP ${response.statusCode} con '
+          'Content-Type "$contentType", no JSON. Verifica la IP guardada '
+          'y que XAMPP esté sirviendo pulso_api.',
+        );
+      }
       if (decoded is! Map<String, dynamic>) {
-        throw const FormatException('La respuesta de XAMPP no es JSON valido.');
+        throw Exception(
+          'La dirección $uri devolvió JSON con un formato inesperado.',
+        );
       }
       if (response.statusCode < 200 || response.statusCode >= 300) {
         throw Exception(
@@ -79,10 +96,6 @@ class AbrahamXamppApiClient {
     } on http.ClientException {
       throw Exception(
         'No se pudo conectar con XAMPP. Revisa Apache, la URL de la API y CORS.',
-      );
-    } on FormatException {
-      throw Exception(
-        'La API no devolvio JSON. Comprueba que Apache encuentre los archivos PHP.',
       );
     }
   }

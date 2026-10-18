@@ -4,8 +4,8 @@ class WifiApiConfig {
   WifiApiConfig._();
 
   static const bool useWifiApi = true;
-  static const String baseUrl = 'http://172.20.10.9/pulso_api';
-  static const _apiUrlPreferenceKey = 'pulso_api_base_url';
+  static const String baseUrl = 'http://192.168.1.178/pulso_api';
+  static const _apiUrlPreferenceKey = 'pulso_api_base_url_v2';
   static final _preferences = SharedPreferencesAsync();
 
   static String? _adminBaseUrl;
@@ -41,7 +41,7 @@ class WifiApiConfig {
               int.parse(octet) > 255,
         )) {
       throw const FormatException(
-        'Escribe una IPv4 válida, por ejemplo 172.20.10.9.',
+        'Escribe una IPv4 válida, por ejemplo 192.168.1.178.',
       );
     }
 
@@ -51,5 +51,16 @@ class WifiApiConfig {
   static String webAppUrl(String input) {
     final apiUri = Uri.parse(normalizeBaseUrl(input));
     return apiUri.replace(path: '/pulso/').toString();
+  }
+
+  static String? webApiBaseUrl(Uri appUri) {
+    if (!appUri.path.startsWith('/pulso/')) return null;
+    return Uri(
+      scheme: appUri.scheme,
+      userInfo: appUri.userInfo,
+      host: appUri.host,
+      port: appUri.hasPort ? appUri.port : null,
+      path: '/pulso_api',
+    ).toString();
   }
 }
