@@ -12,12 +12,14 @@ class DanceHomeScreen extends StatelessWidget {
     required this.refreshKey,
     required this.onStartEvaluation,
     required this.onOpenReports,
+    required this.onOpenServerConfig,
   });
 
   final DanceDatabase database;
   final int refreshKey;
   final VoidCallback onStartEvaluation;
   final VoidCallback onOpenReports;
+  final VoidCallback onOpenServerConfig;
 
   @override
   Widget build(BuildContext context) {
@@ -60,6 +62,16 @@ class DanceHomeScreen extends StatelessWidget {
                     ),
                     icon: const Icon(Icons.add_rounded),
                     label: const Text('Nueva evaluación'),
+                  ),
+                  const SizedBox(height: 10),
+                  OutlinedButton.icon(
+                    onPressed: onOpenServerConfig,
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      side: const BorderSide(color: Colors.white70),
+                    ),
+                    icon: const Icon(Icons.qr_code_rounded),
+                    label: const Text('Cambiar IP y ver QR'),
                   ),
                 ],
               ),

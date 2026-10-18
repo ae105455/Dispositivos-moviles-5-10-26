@@ -15,7 +15,10 @@ class AbrahamXamppApiClient {
 
   final http.Client _client;
 
-  String get _baseUrl {
+  static String get baseUrl {
+    if (WifiApiConfig.adminBaseUrl case final String adminBaseUrl) {
+      return adminBaseUrl;
+    }
     if (_configuredBaseUrl.isNotEmpty) return _configuredBaseUrl;
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
       if (WifiApiConfig.useWifiApi) return WifiApiConfig.baseUrl;
@@ -23,6 +26,8 @@ class AbrahamXamppApiClient {
     }
     return 'http://localhost/pulso_api';
   }
+
+  String get _baseUrl => baseUrl;
 
   Future<Map<String, Object?>> getCatalogs() => _get('catalogs.php');
 

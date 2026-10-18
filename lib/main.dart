@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'data/ipconfig/wifi_api_config.dart';
 import 'data/dance_database.dart';
+import 'screens/admin_server_screen.dart';
 import 'screens/dance_home_screen.dart';
 import 'screens/evaluation_screen.dart';
 import 'screens/reports_screen.dart';
@@ -11,8 +13,9 @@ const _paper = Color(0xFFF5F3EC);
 const _green = Color(0xFF176B58);
 const _coral = Color(0xFFDF7359);
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await WifiApiConfig.load();
   final database = DanceDatabase();
   runApp(DanceEvaluationApp(database: database));
 }
@@ -93,6 +96,14 @@ class _DanceShellState extends State<DanceShell> {
     });
   }
 
+  void _openServerConfig() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => const AdminServerScreen(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final pages = [
@@ -101,6 +112,7 @@ class _DanceShellState extends State<DanceShell> {
         refreshKey: _refreshKey,
         onStartEvaluation: () => setState(() => _selectedIndex = 1),
         onOpenReports: () => setState(() => _selectedIndex = 2),
+        onOpenServerConfig: _openServerConfig,
       ),
       EvaluationScreen(database: widget.database, onSaved: _onSaved),
       ReportsScreen(database: widget.database, refreshKey: _refreshKey),
@@ -112,61 +124,77 @@ class _DanceShellState extends State<DanceShell> {
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(22, 12, 22, 8),
-              child: Row(
-                children: [
-                  Container(
-                    width: 42,
-                    height: 42,
-                    decoration: BoxDecoration(
-                      color: _green,
-                      borderRadius: BorderRadius.circular(12),
+              child: GestureDetector(
+                onLongPress: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const AdminServerScreen(),
                     ),
-                    child: const Icon(
-                      Icons.graphic_eq_rounded,
-                      color: Colors.white,
-                      size: 26,
+                  );
+                },
+                child: Row(
+                  children: [
+                    Container(
+                      width: 42,
+                      height: 42,
+                      decoration: BoxDecoration(
+                        color: _green,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.graphic_eq_rounded,
+                        color: Colors.white,
+                        size: 26,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 11),
-                  const Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'PULSO',
-                        style: TextStyle(
-                          color: _ink,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 1.8,
+                    const SizedBox(width: 11),
+                    const Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'PULSO',
+                          style: TextStyle(
+                            color: _ink,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1.8,
+                          ),
                         ),
-                      ),
-                      Text(
-                        'EVALUACIÓN DE BAILE',
-                        style: TextStyle(
-                          color: Color(0xFF6F7772),
-                          fontSize: 9,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 1.2,
+                        Text(
+                          'EVALUACIÓN DE BAILE',
+                          style: TextStyle(
+                            color: Color(0xFF6F7772),
+                            fontSize: 9,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 1.2,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const Spacer(),
-                  IconButton(
-                    tooltip: 'Inicio',
-                    onPressed: () => setState(() => _selectedIndex = 0),
-                    icon: const Icon(Icons.home_outlined),
-                  ),
-                ],
+                      ],
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      tooltip: 'Configuración del servidor',
+                      onPressed: _openServerConfig,
+                      icon: const Icon(Icons.settings_outlined),
+                    ),
+                    IconButton(
+                      tooltip: 'Inicio',
+                      onPressed: () => setState(() => _selectedIndex = 0),
+                      icon: const Icon(Icons.home_outlined),
+                    ),
+                  ],
+                ),
               ),
             ),
-            Expanded(child: IndexedStack(index: _selectedIndex, children: pages)),
+            Expanded(
+                child: IndexedStack(index: _selectedIndex, children: pages)),
           ],
         ),
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
-        onDestinationSelected: (index) => setState(() => _selectedIndex = index),
+        onDestinationSelected: (index) =>
+            setState(() => _selectedIndex = index),
         backgroundColor: Colors.white,
         indicatorColor: const Color(0xFFDCEBE4),
         destinations: const [

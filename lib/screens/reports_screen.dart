@@ -26,9 +26,18 @@ class ReportsScreen extends StatelessWidget {
     final document = pw.Document();
     String formatScore(Object? value) =>
         (num.tryParse('$value') ?? 0).toStringAsFixed(1);
+    final maximumCriteria = criteria.length;
+    final maximumScore = maximumCriteria * 25;
+    int scoredCriteria(Map<String, Object?> row) =>
+        int.tryParse('${row['scored_criteria']}') ?? maximumCriteria;
+    String evaluationSignature(Map<String, Object?> row) {
+      final signature = '${row['signature'] ?? ''}'.trim();
+      return signature.isEmpty ? ' ' : signature;
+    }
 
     document.addPage(
       pw.MultiPage(
+        margin: const pw.EdgeInsets.all(32),
         pageFormat: PdfPageFormat.a4.landscape,
         build: (context) => [
           pw.Text(
@@ -41,6 +50,13 @@ class ReportsScreen extends StatelessWidget {
           ),
           pw.SizedBox(height: 6),
           pw.Text('Generado: ${DateTime.now().toLocal()}'),
+          pw.SizedBox(height: 4),
+          pw.Text(
+            'Promedio individual: máximo 25 puntos. '
+            'Puntaje total: máximo $maximumScore puntos '
+            '($maximumCriteria criterios activos, 25 puntos cada uno).',
+            style: const pw.TextStyle(fontSize: 9),
+          ),
           pw.SizedBox(height: 18),
           if (evaluations.isEmpty)
             pw.Text('Todavía no hay evaluaciones registradas.')
@@ -51,18 +67,65 @@ class ReportsScreen extends StatelessWidget {
                 'Carrera',
                 'Turno',
                 'Título del baile',
-                'Promedio',
-                'Puntaje total',
+                'Promedio / 25',
+                'Criterios calificados',
+                'Total / $maximumScore',
               ],
-              data: evaluations
+              data: evaluations.map(
+                (row) {
+                  final count = scoredCriteria(row);
+                  return [
+                    '${row['dancer_name'] ?? ''}',
+                    '${row['career'] ?? ''}',
+                    '${row['shift'] ?? ''}',
+                    '${row['dance_style'] ?? ''}',
+                    '${formatScore(row['average_score'])} / 25',
+                    '$count / $maximumCriteria',
+                    '${formatScore(row['total_score'])} / $maximumScore',
+                  ];
+                },
+              ).toList(),
+              headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+              headerDecoration: const pw.BoxDecoration(
+                color: PdfColor.fromInt(0xFFE5F0EB),
+              ),
+              cellAlignment: pw.Alignment.center,
+              cellStyle: const pw.TextStyle(fontSize: 8),
+              cellPadding: const pw.EdgeInsets.symmetric(
+                horizontal: 5,
+                vertical: 7,
+              ),
+              columnWidths: {
+                0: const pw.FlexColumnWidth(1.5),
+                1: const pw.FlexColumnWidth(1.5),
+                2: const pw.FlexColumnWidth(0.8),
+                3: const pw.FlexColumnWidth(1.3),
+                4: const pw.FlexColumnWidth(1.1),
+                5: const pw.FlexColumnWidth(1.0),
+                6: const pw.FlexColumnWidth(1.1),
+              },
+            ),
+          pw.SizedBox(height: 22),
+          pw.Text(
+            'Resultados por criterio',
+            style: pw.TextStyle(fontSize: 15, fontWeight: pw.FontWeight.bold),
+          ),
+          pw.SizedBox(height: 9),
+          if (criteria.isEmpty)
+            pw.Text('No hay criterios activos para mostrar.')
+          else
+            pw.TableHelper.fromTextArray(
+              headers: const [
+                'Criterio',
+                'Nota promedio / 25',
+                'Notas registradas',
+              ],
+              data: criteria
                   .map(
                     (row) => [
-                      row['dancer_name'],
-                      row['career'],
-                      row['shift'],
-                      row['dance_style'],
-                      '${formatScore(row['average_score'])}/25',
-                      '${formatScore(row['total_score'])}/100',
+                      '${row['criterion_name'] ?? ''}',
+                      '${formatScore(row['average_score'])} / 25',
+                      '${row['score_count'] ?? 0}',
                     ],
                   )
                   .toList(),
@@ -71,59 +134,129 @@ class ReportsScreen extends StatelessWidget {
                 color: PdfColor.fromInt(0xFFE5F0EB),
               ),
               cellAlignment: pw.Alignment.centerLeft,
-              cellPadding: const pw.EdgeInsets.all(7),
-            ),
-          pw.SizedBox(height: 22),
-          pw.Text(
-            'Promedio por criterio',
-            style: pw.TextStyle(fontSize: 15, fontWeight: pw.FontWeight.bold),
-          ),
-          pw.SizedBox(height: 8),
-          ...criteria.map(
-            (row) => pw.Padding(
-              padding: const pw.EdgeInsets.symmetric(vertical: 3),
-              child: pw.Text(
-                '${row['criterion_name']}: '
-                '${formatScore(row['average_score'])}/25 '
-                '(${row['score_count']} notas)',
+              cellPadding: const pw.EdgeInsets.symmetric(
+                horizontal: 7,
+                vertical: 6,
               ),
             ),
-          ),
-          if (evaluations.isNotEmpty) ...[
-            pw.SizedBox(height: 24),
-            pw.Text(
-              'Firma del docente',
-              style: pw.TextStyle(fontSize: 15, fontWeight: pw.FontWeight.bold),
-            ),
-            pw.SizedBox(height: 8),
-            ...evaluations.map(
-              (row) => pw.Container(
-                width: 260,
-                margin: const pw.EdgeInsets.only(bottom: 18),
-                child: pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.center,
-                  children: [
-                    pw.SizedBox(height: 22),
-                    pw.Text('${row['signature'] ?? ''}'),
-                    pw.Container(
-                      width: 240,
-                      height: 1,
-                      color: PdfColors.black,
-                    ),
-                    pw.SizedBox(height: 5),
-                    pw.Text(
-                      '${row['evaluator_name'] ?? ''}',
-                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                    ),
-                    pw.Text('${row['evaluator_position'] ?? ''}'),
-                  ],
-                ),
-              ),
-            ),
-          ],
         ],
       ),
     );
+
+    if (evaluations.isNotEmpty) {
+      pw.Widget signatureCard(Map<String, Object?> row) {
+        final participant = '${row['dancer_name'] ?? ''}'.trim();
+        final danceTitle = '${row['dance_style'] ?? ''}'.trim();
+        final evaluator = '${row['evaluator_name'] ?? ''}'.trim();
+        final position = '${row['evaluator_position'] ?? ''}'.trim();
+
+        return pw.Container(
+          padding: const pw.EdgeInsets.fromLTRB(14, 12, 14, 14),
+          decoration: pw.BoxDecoration(
+            border: pw.Border.all(
+              color: const PdfColor.fromInt(0xFFD8DED9),
+              width: 0.7,
+            ),
+            borderRadius: const pw.BorderRadius.all(pw.Radius.circular(5)),
+          ),
+          child: pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+            children: [
+              pw.Text(
+                participant.isEmpty ? 'Participante sin nombre' : participant,
+                style: pw.TextStyle(
+                  fontSize: 10,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+              if (danceTitle.isNotEmpty) ...[
+                pw.SizedBox(height: 2),
+                pw.Text(
+                  danceTitle,
+                  style:
+                      const pw.TextStyle(fontSize: 8, color: PdfColors.grey700),
+                ),
+              ],
+              pw.SizedBox(height: 16),
+              pw.Container(
+                height: 20,
+                alignment: pw.Alignment.bottomCenter,
+                child: pw.Text(
+                  evaluationSignature(row),
+                  textAlign: pw.TextAlign.center,
+                  style: const pw.TextStyle(fontSize: 10),
+                ),
+              ),
+              pw.Container(height: 0.8, color: PdfColors.black),
+              pw.SizedBox(height: 5),
+              pw.Text(
+                evaluator.isEmpty ? 'Docente' : evaluator,
+                textAlign: pw.TextAlign.center,
+                style: pw.TextStyle(
+                  fontSize: 9,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+              if (position.isNotEmpty)
+                pw.Text(
+                  position,
+                  textAlign: pw.TextAlign.center,
+                  style: const pw.TextStyle(fontSize: 8),
+                ),
+            ],
+          ),
+        );
+      }
+
+      document.addPage(
+        pw.MultiPage(
+          margin: const pw.EdgeInsets.all(32),
+          pageFormat: PdfPageFormat.a4.landscape,
+          build: (context) => [
+            pw.Text(
+              'Firmas de las evaluaciones',
+              style: pw.TextStyle(
+                fontSize: 18,
+                fontWeight: pw.FontWeight.bold,
+                color: PdfColor.fromHex('#176B58'),
+              ),
+            ),
+            pw.SizedBox(height: 6),
+            pw.Text(
+              'Una línea de firma por evaluación. '
+              'El nombre escrito en el formulario se muestra sobre la línea.',
+              style: const pw.TextStyle(fontSize: 9),
+            ),
+            pw.SizedBox(height: 16),
+            pw.Table(
+              columnWidths: {
+                0: const pw.FlexColumnWidth(1),
+                1: const pw.FlexColumnWidth(1),
+              },
+              children: [
+                for (var index = 0; index < evaluations.length; index += 2)
+                  pw.TableRow(
+                    verticalAlignment: pw.TableCellVerticalAlignment.middle,
+                    children: [
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.only(right: 8, bottom: 12),
+                        child: signatureCard(evaluations[index]),
+                      ),
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.only(left: 8, bottom: 12),
+                        child: index + 1 < evaluations.length
+                            ? signatureCard(evaluations[index + 1])
+                            : pw.SizedBox(),
+                      ),
+                    ],
+                  ),
+              ],
+            ),
+          ],
+        ),
+      );
+    }
+
     await Printing.layoutPdf(onLayout: (_) async => document.save());
   }
 
