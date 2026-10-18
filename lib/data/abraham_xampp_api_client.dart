@@ -20,7 +20,11 @@ class AbrahamXamppApiClient {
       return adminBaseUrl;
     }
     if (_configuredBaseUrl.isNotEmpty) return _configuredBaseUrl;
-    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+    if (kIsWeb) {
+      return Uri.base.replace(path: '/pulso_api', query: null, fragment: null)
+          .toString();
+    }
+    if (defaultTargetPlatform == TargetPlatform.android) {
       if (WifiApiConfig.useWifiApi) return WifiApiConfig.baseUrl;
       return 'http://10.0.2.2/pulso_api';
     }

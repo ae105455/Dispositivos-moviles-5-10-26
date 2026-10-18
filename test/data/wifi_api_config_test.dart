@@ -6,15 +6,15 @@ void main() {
   group('WifiApiConfig.normalizeBaseUrl', () {
     test('creates the API URL from an IPv4 address', () {
       expect(
-        WifiApiConfig.normalizeBaseUrl('192.168.0.30'),
-        'http://192.168.0.30/pulso_api',
+        WifiApiConfig.normalizeBaseUrl('172.20.10.9'),
+        'http://172.20.10.9/pulso_api',
       );
     });
 
     test('trims whitespace around the IPv4 address', () {
       expect(
-        WifiApiConfig.normalizeBaseUrl(' 192.168.0.30 '),
-        'http://192.168.0.30/pulso_api',
+        WifiApiConfig.normalizeBaseUrl(' 172.20.10.9 '),
+        'http://172.20.10.9/pulso_api',
       );
     });
 
@@ -23,8 +23,8 @@ void main() {
         '',
         '192.168.2',
         '192.168.2.256',
-        'http://192.168.0.30',
-        '192.168.0.30/pulso_api',
+        'http://172.20.10.9',
+        '172.20.10.9/pulso_api',
         'example.com',
       ]) {
         expect(
@@ -33,6 +33,22 @@ void main() {
           reason: 'Expected "$address" to be rejected.',
         );
       }
+    });
+  });
+
+  group('WifiApiConfig.webAppUrl', () {
+    test('creates the same-origin web app URL from an IPv4 address', () {
+      expect(
+        WifiApiConfig.webAppUrl('172.20.10.9'),
+        'http://172.20.10.9/pulso/',
+      );
+    });
+
+    test('rejects invalid IPv4 input', () {
+      expect(
+        () => WifiApiConfig.webAppUrl('172.20.10.256'),
+        throwsFormatException,
+      );
     });
   });
 

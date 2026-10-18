@@ -39,6 +39,14 @@ class _AdminServerScreenState extends State<AdminServerScreen> {
     }
   }
 
+  String? get _webAppUrl {
+    try {
+      return WifiApiConfig.webAppUrl(_addressController.text);
+    } on FormatException {
+      return null;
+    }
+  }
+
   String? get _wifiQrData => WifiQrData.tryEncode(
         ssid: _ssidController.text,
         password: _passwordController.text,
@@ -140,6 +148,7 @@ class _AdminServerScreenState extends State<AdminServerScreen> {
   @override
   Widget build(BuildContext context) {
     final qrUrl = _qrUrl;
+    final webAppUrl = _webAppUrl;
     final wifiQrData = _wifiQrData;
 
     return Scaffold(
@@ -158,7 +167,7 @@ class _AdminServerScreenState extends State<AdminServerScreen> {
             textInputAction: TextInputAction.done,
             decoration: const InputDecoration(
               labelText: 'Dirección IPv4',
-              hintText: '192.168.0.30',
+              hintText: '172.20.10.9',
               prefixIcon: Icon(Icons.dns_outlined),
             ),
             onChanged: _onAddressChanged,
@@ -167,7 +176,7 @@ class _AdminServerScreenState extends State<AdminServerScreen> {
           Text(
             _isSaving
                 ? 'Guardando IP...'
-                : 'Ejemplo: 192.168.0.30. Se guarda automáticamente.',
+                : 'Ejemplo: 172.20.10.9. Se guarda automáticamente.',
             style: const TextStyle(fontSize: 12, color: Colors.black54),
           ),
           if (qrUrl case final url?) ...[
@@ -181,9 +190,21 @@ class _AdminServerScreenState extends State<AdminServerScreen> {
             ),
           ] else
             Text(
-              'Escribe una IPv4 válida, por ejemplo 192.168.0.30.',
+              'Escribe una IPv4 válida, por ejemplo 172.20.10.9.',
               style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
+          if (webAppUrl case final url?) ...[
+            _qrCard(
+              title: 'Abrir Pulso en iPhone o Android',
+              description:
+                  'Abre el enlace en Safari y usa Compartir > '
+                  'Añadir a pantalla de inicio. El teléfono debe estar '
+                  'conectado a la misma red que esta computadora.',
+              data: url,
+              semanticsLabel: 'Código QR para abrir Pulso como aplicación web',
+              caption: url,
+            ),
+          ],
           const SizedBox(height: 24),
           const Text(
             'QR para conectarse al Wi-Fi',
