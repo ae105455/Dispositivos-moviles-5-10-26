@@ -4,7 +4,7 @@ class WifiApiConfig {
   WifiApiConfig._();
 
   static const bool useWifiApi = true;
-  static const String baseUrl = 'http://192.168.1.178/pulso_api';
+  static const String baseUrl = 'http://172.20.10.9/pulso_api';
   static const _apiUrlPreferenceKey = 'pulso_api_base_url_v2';
   static final _preferences = SharedPreferencesAsync();
 
@@ -41,7 +41,7 @@ class WifiApiConfig {
               int.parse(octet) > 255,
         )) {
       throw const FormatException(
-        'Escribe una IPv4 válida, por ejemplo 192.168.1.178.',
+        'Escribe una IPv4 válida, por ejemplo 172.20.10.9.',
       );
     }
 

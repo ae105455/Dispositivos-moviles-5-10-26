@@ -6,15 +6,15 @@ void main() {
   group('WifiApiConfig.normalizeBaseUrl', () {
     test('creates the API URL from an IPv4 address', () {
       expect(
-        WifiApiConfig.normalizeBaseUrl('192.168.1.178'),
-        'http://192.168.1.178/pulso_api',
+        WifiApiConfig.normalizeBaseUrl('172.20.10.9'),
+        'http://172.20.10.9/pulso_api',
       );
     });
 
     test('trims whitespace around the IPv4 address', () {
       expect(
-        WifiApiConfig.normalizeBaseUrl(' 192.168.1.178 '),
-        'http://192.168.1.178/pulso_api',
+        WifiApiConfig.normalizeBaseUrl(' 172.20.10.9 '),
+        'http://172.20.10.9/pulso_api',
       );
     });
 
@@ -23,8 +23,8 @@ void main() {
         '',
         '192.168.2',
         '192.168.2.256',
-        'http://192.168.1.178',
-        '192.168.1.178/pulso_api',
+        'http://172.20.10.9',
+        '172.20.10.9/pulso_api',
         'example.com',
       ]) {
         expect(
@@ -54,9 +54,9 @@ void main() {
     test('uses the app host for its API and drops the web route', () {
       expect(
         WifiApiConfig.webApiBaseUrl(
-          Uri.parse('http://192.168.1.178/pulso/?from=qr#home'),
+          Uri.parse('http://172.20.10.9/pulso/?from=qr#home'),
         ),
-        'http://192.168.1.178/pulso_api',
+        'http://172.20.10.9/pulso_api',
       );
     });
 

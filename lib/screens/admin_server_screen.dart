@@ -167,7 +167,7 @@ class _AdminServerScreenState extends State<AdminServerScreen> {
             textInputAction: TextInputAction.done,
             decoration: const InputDecoration(
               labelText: 'Dirección IPv4',
-              hintText: '192.168.1.178',
+              hintText: '172.20.10.9',
               prefixIcon: Icon(Icons.dns_outlined),
             ),
             onChanged: _onAddressChanged,
@@ -176,7 +176,7 @@ class _AdminServerScreenState extends State<AdminServerScreen> {
           Text(
             _isSaving
                 ? 'Guardando IP...'
-                : 'Ejemplo: 192.168.1.178. Se guarda automáticamente.',
+                : 'Ejemplo: 172.20.10.9. Se guarda automáticamente.',
             style: const TextStyle(fontSize: 12, color: Colors.black54),
           ),
           if (qrUrl case final url?) ...[
@@ -190,7 +190,7 @@ class _AdminServerScreenState extends State<AdminServerScreen> {
             ),
           ] else
             Text(
-              'Escribe una IPv4 válida, por ejemplo 192.168.1.178.',
+              'Escribe una IPv4 válida, por ejemplo 172.20.10.9.',
               style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
           if (webAppUrl case final url?) ...[
