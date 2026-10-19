@@ -31,13 +31,17 @@ Para ver la aplicación en la web:
 flutter run -d chrome
 ```
 
+La aplicación abre directamente el formulario para empezar a llenarlo sin
+esperar una conexión. La evaluación se envía a XAMPP al pulsar **Guardar**;
+inicio y consultas cargan sus datos solo cuando se abren.
+
 ### Direccion de XAMPP y codigo QR
 
 En la pantalla Inicio, pulsa **Cambiar IP y ver QR**. La configuración ofrece
 tres códigos:
 
 - **XAMPP:** escribe la IPv4 actual de la computadora donde está XAMPP. En la
-  red actual es `192.168.1.178`; puede cambiar al cambiar de red.
+  red actual es `172.20.10.9`; puede cambiar al cambiar de red.
   El QR se actualiza y la dirección se guarda automáticamente. Al escanearlo,
   abre el API en el navegador.
 - **Pulso para iPhone y Android:** compila la versión web y cópiala en XAMPP:

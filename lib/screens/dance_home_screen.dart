@@ -10,6 +10,7 @@ class DanceHomeScreen extends StatelessWidget {
     super.key,
     required this.database,
     required this.refreshKey,
+    required this.active,
     required this.onStartEvaluation,
     required this.onOpenReports,
     required this.onOpenServerConfig,
@@ -17,12 +18,15 @@ class DanceHomeScreen extends StatelessWidget {
 
   final DanceDatabase database;
   final int refreshKey;
+  final bool active;
   final VoidCallback onStartEvaluation;
   final VoidCallback onOpenReports;
   final VoidCallback onOpenServerConfig;
 
   @override
   Widget build(BuildContext context) {
+    if (!active) return const SizedBox.shrink();
+
     return FutureBuilder<Map<String, Object?>>(
       key: ValueKey(refreshKey),
       future: database.getDashboardSummary(),

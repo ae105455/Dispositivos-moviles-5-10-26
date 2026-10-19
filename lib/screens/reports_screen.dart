@@ -13,10 +13,12 @@ class ReportsScreen extends StatelessWidget {
     super.key,
     required this.database,
     required this.refreshKey,
+    required this.active,
   });
 
   final DanceDatabase database;
   final int refreshKey;
+  final bool active;
 
   Future<void> _exportPdf(
     BuildContext context,
@@ -262,6 +264,8 @@ class ReportsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (!active) return const SizedBox.shrink();
+
     return FutureBuilder<List<List<Map<String, Object?>>>>(
       key: ValueKey(refreshKey),
       future: Future.wait([

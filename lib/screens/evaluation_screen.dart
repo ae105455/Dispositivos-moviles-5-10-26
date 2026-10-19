@@ -42,11 +42,14 @@ class _EvaluationScreenState extends State<EvaluationScreen> {
   final _signatureController = TextEditingController();
   final _notesController = TextEditingController();
   final Map<int, TextEditingController> _scoreControllers = {};
+  final List<Map<String, Object?>> _criteria = [
+    {'id': 1, 'name': 'Técnica'},
+    {'id': 2, 'name': 'Expresión y arte'},
+    {'id': 3, 'name': 'Coreografía'},
+    {'id': 4, 'name': 'Vestuario y puesta en escena'},
+  ];
   String? _career;
   String? _shift;
-  String? _loadError;
-  List<Map<String, Object?>> _criteria = [];
-  bool _loading = true;
   bool _saving = false;
 
   int get _totalScore => _scoreControllers.values.fold<int>(
@@ -57,27 +60,8 @@ class _EvaluationScreenState extends State<EvaluationScreen> {
   @override
   void initState() {
     super.initState();
-    _loadCriteria();
-  }
-
-  Future<void> _loadCriteria() async {
-    try {
-      final criteria = await widget.database.getCriteria();
-      if (!mounted) return;
-      setState(() {
-        _criteria = criteria;
-        for (final criterion in criteria) {
-          _scoreControllers[criterion['id'] as int] = TextEditingController();
-        }
-        _loadError = null;
-        _loading = false;
-      });
-    } catch (error) {
-      if (!mounted) return;
-      setState(() {
-        _loadError = error.toString();
-        _loading = false;
-      });
+    for (final criterion in _criteria) {
+      _scoreControllers[criterion['id'] as int] = TextEditingController();
     }
   }
 
@@ -318,36 +302,6 @@ class _EvaluationScreenState extends State<EvaluationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_loading) return const Center(child: CircularProgressIndicator());
-    if (_loadError != null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.cloud_off_outlined, size: 42),
-              const SizedBox(height: 12),
-              const Text('No se pudo conectar con la base de datos.'),
-              const SizedBox(height: 8),
-              Text(_loadError!, textAlign: TextAlign.center),
-              const SizedBox(height: 16),
-              FilledButton.icon(
-                onPressed: () {
-                  setState(() {
-                    _loading = true;
-                    _loadError = null;
-                  });
-                  _loadCriteria();
-                },
-                icon: const Icon(Icons.refresh),
-                label: const Text('Reintentar'),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
     /* ESTRUCTURA DEL FORMULARIO: secciones apiladas dentro de una lista desplazable. */
     return Form(
       key: _formKey,

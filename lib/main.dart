@@ -86,7 +86,7 @@ class DanceShell extends StatefulWidget {
 }
 
 class _DanceShellState extends State<DanceShell> {
-  int _selectedIndex = 0;
+  int _selectedIndex = 1;
   int _refreshKey = 0;
 
   void _onSaved() {
@@ -110,12 +110,17 @@ class _DanceShellState extends State<DanceShell> {
       DanceHomeScreen(
         database: widget.database,
         refreshKey: _refreshKey,
+        active: _selectedIndex == 0,
         onStartEvaluation: () => setState(() => _selectedIndex = 1),
         onOpenReports: () => setState(() => _selectedIndex = 2),
         onOpenServerConfig: _openServerConfig,
       ),
       EvaluationScreen(database: widget.database, onSaved: _onSaved),
-      ReportsScreen(database: widget.database, refreshKey: _refreshKey),
+      ReportsScreen(
+        database: widget.database,
+        refreshKey: _refreshKey,
+        active: _selectedIndex == 2,
+      ),
     ];
 
     return Scaffold(

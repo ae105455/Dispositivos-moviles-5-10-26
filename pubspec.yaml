@@ -1,7 +1,7 @@
 name: dance_eval_form
 description: Formulario móvil para evaluación de baile con reportes y exportación PDF.
 publish_to: none
-version: 1.0.4+4
+version: 1.0.5+5
 
 environment:
   sdk: ">=3.3.0 <4.0.0"
