@@ -3,6 +3,10 @@ import 'package:dance_eval_form/data/ipconfig/wifi_qr_data.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('uses the computer IPv4 address as the default API server', () {
+    expect(WifiApiConfig.baseUrl, 'http://172.20.10.2/pulso_api');
+  });
+
   group('WifiApiConfig.normalizeBaseUrl', () {
     test('creates the API URL from an IPv4 address', () {
       expect(

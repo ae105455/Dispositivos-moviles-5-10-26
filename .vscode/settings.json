@@ -1,0 +1,6 @@
+{
+  "security.workspace.trust.untrustedFiles": "open",
+  "liveServer.settings.donotShowInfoMsg": true,
+  "workbench.settings.applyToAllProfiles": [],
+  "php.validate.executablePath": "C:/xampp/php/php.exe"
+}

@@ -4,8 +4,9 @@ class WifiApiConfig {
   WifiApiConfig._();
 
   static const bool useWifiApi = true;
-  static const String baseUrl = 'http://172.20.10.9/pulso_api';
+  static const String baseUrl = 'http://172.20.10.2/pulso_api';
   static const _apiUrlPreferenceKey = 'pulso_api_base_url_v2';
+  static const _previousDefaultBaseUrl = 'http://172.20.10.9/pulso_api';
   static final _preferences = SharedPreferencesAsync();
 
   static String? _adminBaseUrl;
@@ -13,7 +14,13 @@ class WifiApiConfig {
   static String? get adminBaseUrl => _adminBaseUrl;
 
   static Future<void> load() async {
-    _adminBaseUrl = await _preferences.getString(_apiUrlPreferenceKey);
+    final savedUrl = await _preferences.getString(_apiUrlPreferenceKey);
+    if (savedUrl == _previousDefaultBaseUrl) {
+      await _preferences.setString(_apiUrlPreferenceKey, baseUrl);
+      _adminBaseUrl = baseUrl;
+      return;
+    }
+    _adminBaseUrl = savedUrl;
   }
 
   static Future<void> saveBaseUrl(String input) async {
@@ -41,7 +48,7 @@ class WifiApiConfig {
               int.parse(octet) > 255,
         )) {
       throw const FormatException(
-        'Escribe una IPv4 válida, por ejemplo 172.20.10.9.',
+        'Escribe una IPv4 válida, por ejemplo 172.20.10.2.',
       );
     }
 
